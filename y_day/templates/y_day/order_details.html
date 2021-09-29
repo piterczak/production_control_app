@@ -1,0 +1,19 @@
+{% extends "y_day/base_generic.html" %}
+
+{% block title %}<title> Sczegóły zlecenia </title> {% endblock %}
+
+{% block content %}
+<br> 
+<div class='justify-center'>
+    <form action="" method="post">
+        {% csrf_token %}
+        {{message}}<br> 
+        <input class="btn btn-outline-success btn-sm rounded" type="submit" value="Generate excel report">
+    </form>
+</div>
+{% csrf_token %}
+{{final|safe}}
+<div class="text-center text-large text-dark bg-warning">
+{{warning}}
+</div>
+{% endblock %}

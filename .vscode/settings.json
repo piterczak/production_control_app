@@ -1,0 +1,11 @@
+{
+    "python.defaultInterpreterPath": "C:\\Django\\django3\\Scripts\\python.exe",
+    "editor.parameterHints.enabled": false,
+    "terminal.integrated.shellArgs.windows": [
+        "-ExecutionPolicy",
+        "Bypass"
+    ],
+    "python.pythonPath": "f:\\Python_venv\\Scripts\\python.exe",
+    "githubPullRequests.remotes": [],
+    
+}

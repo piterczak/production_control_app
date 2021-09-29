@@ -1,0 +1,17 @@
+{% extends "y_day/base_generic.html" %}
+
+{% block title %}<title> Lista pracowników w danym dniu </title> {% endblock %}
+
+{% block content %}
+<div class='justify-center'>
+    <form action="" method="post">
+        {% csrf_token %}
+        {{message}}<br> 
+        <input class="btn btn-outline-success btn-sm rounded" type="submit" value="Generate excel report">
+    </form>
+</div>
+{{final|safe}}
+{% endblock %}
+
+
+

@@ -1,0 +1,47 @@
+.dataframe 
+{
+    font-size: medium;
+    column-width: auto;
+    row-gap: auto;
+}
+
+.dataframe thead 
+{
+    background-color:rgba(124, 150, 177, 0.534);
+}
+
+.data-1 thead tr:nth-child(2) th:nth-child(n+6) 
+{
+
+    position:sticky;
+    top : 0;
+    background-color:rgb(143, 164, 187);
+}
+.data-2 thead tr:nth-child(2) th:nth-child(-n+6)
+{
+
+    position:sticky;
+    top : 0;
+    background-color:rgb(143, 164, 187);
+}
+
+.data-2 thead tr:nth-child(1) th:nth-child(n+7)
+{
+    position:sticky;
+    top : 0;
+    background-color:rgb(143, 164, 187);  
+}
+
+.dataframe thead tr:nth-child(4) th:nth-child(-n+5)
+{
+    position:sticky;
+    top : 0;
+    background-color:rgb(143, 164, 187);
+}
+
+.komunikat 
+{    
+    position:center;
+    font-size: large;
+    color: red;
+}

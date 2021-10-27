@@ -88,15 +88,15 @@ def y_day_workers(request, date='', week='', year='', template_name = 'y_day/y_d
     df = df.drop(columns=['Opis operacji', 'DataCzas'])
     df = df.sort_values(by=['Zlecenie', 'Nazwisko', 'Imie', 'id'])
     df = df.reset_index()
-    JobSummaryTime = df.groupby(['Zlecenie']).sum(['Czas na zleceniu']).reset_index()
-    JobSummaryTime = JobSummaryTime.drop(columns=['id', 'index'])
-    JobSummaryTime = JobSummaryTime.rename(columns={"Czas na zleceniu" : "Łączny czas zlecenia"})
-    df = pd.merge(df, JobSummaryTime, how='outer', left_on='Zlecenie', right_on='Zlecenie')
-    PersonSummaryTime = df.groupby(['Zlecenie','id','Nazwisko', 'Imie', 'Czynność']).sum(['Czas na zleceniu'])
-    PersonSummaryTime = PersonSummaryTime.reset_index()
-    PersonSummaryTime = PersonSummaryTime.drop(columns=['index', 'Łączny czas zlecenia', 'Nazwisko', 'Imie'])
-    PersonSummaryTime = PersonSummaryTime.rename(columns={'Czas na zleceniu': 'Czas osoby na danej czynności w zleceniu'})
-    df = pd.merge(df, PersonSummaryTime, how='outer', left_on=['Zlecenie','Czynność', 'id'], right_on=['Zlecenie', 'Czynność' ,'id'])
+    job_summary_time = df.groupby(['Zlecenie']).sum(['Czas na zleceniu']).reset_index()
+    job_summary_time = job_summary_time.drop(columns=['id', 'index'])
+    job_summary_time = job_summary_time.rename(columns={"Czas na zleceniu" : "Łączny czas zlecenia"})
+    df = pd.merge(df, job_summary_time, how='outer', left_on='Zlecenie', right_on='Zlecenie')
+    person_summary_time = df.groupby(['Zlecenie','id','Nazwisko', 'Imie', 'Czynność']).sum(['Czas na zleceniu'])
+    person_summary_time = person_summary_time.reset_index()
+    person_summary_time = person_summary_time.drop(columns=['index', 'Łączny czas zlecenia', 'Nazwisko', 'Imie'])
+    person_summary_time = person_summary_time.rename(columns={'Czas na zleceniu': 'Czas osoby na danej czynności w zleceniu'})
+    df = pd.merge(df, person_summary_time, how='outer', left_on=['Zlecenie','Czynność', 'id'], right_on=['Zlecenie', 'Czynność' ,'id'])
     df = df.drop(columns=['Czas na zleceniu', 'index'])
     df.reset_index()
     df['Czas osoby na danej czynności w zleceniu'] = round((df['Czas osoby na danej czynności w zleceniu'] / 3600), 2)
@@ -181,7 +181,7 @@ def order_details(request, order='', template_name = 'y_day/order_details.html')
     cnn = pyodbc.connect('DRIVER='+json_driver+';SERVER='+json_server+';PORT='+json_port+';DATABASE='+json_database+';UID='+json_username +
                          ';PWD='+json_password, timeout=300)
     df = pd.DataFrame()
-    licznik = 0
+    counter = 0
     query_piece = order
     query_piece = str(query_piece)
     if "#2F" in query_piece:
@@ -207,8 +207,8 @@ def order_details(request, order='', template_name = 'y_day/order_details.html')
             AND CDN_HANSEN.dbo.zProdRcpZdarzenia.Opis LIKE ('%operacji')
             ORDER BY CDN_HANSEN.dbo.zProdPracownicy.Nazwisko, CDN_HANSEN.dbo.zProdPracownicy.Imie, DataCzas,CDN_HANSEN.dbo.zProdPracownicy.Opis """)
             df = pd.read_sql_query(sql_q, cnn)
-            licznik = licznik + 1
-            if licznik > 2:
+            counter = counter + 1
+            if counter > 2:
                 warning = "Brak wpisów na temat danego zlecenia w bazie!"
                 context ={
                     'warning' : warning
@@ -241,20 +241,20 @@ def order_details(request, order='', template_name = 'y_day/order_details.html')
         df = df.drop_duplicates()
         df['Czas na zleceniu'] = round((df['Czas na zleceniu'] / 3600), 2)
         sorted_df = df.groupby(['Zlecenie', 'Nazwisko', 'Imie', 'DataCzas','id']).sum(['']).reset_index()
-        suma_dnia = sorted_df.groupby(['DataCzas', 'Zlecenie']).sum().reset_index()
-        if 'id' in suma_dnia:
-            suma_dnia = suma_dnia.drop(columns='id')
-        suma_zlecenia = suma_dnia.groupby(['Zlecenie']).sum().reset_index()
-        suma_zlecenia = suma_zlecenia.rename(columns = {"Czas na zleceniu" : "Suma zlecenia"})
-        suma_dnia = suma_dnia.groupby(['DataCzas']).sum().reset_index()
+        day_summary = sorted_df.groupby(['DataCzas', 'Zlecenie']).sum().reset_index()
+        if 'id' in day_summary:
+            day_summary = day_summary.drop(columns='id')
+        job_sum_time = day_summary.groupby(['Zlecenie']).sum().reset_index()
+        job_sum_time = job_sum_time.rename(columns = {"Czas na zleceniu" : "Suma zlecenia"})
+        day_summary = day_summary.groupby(['DataCzas']).sum().reset_index()
         count_worker_summary_time = sorted_df.groupby(['Zlecenie','id', 'Nazwisko', 'Imie']).sum('Czas na zleceniu').reset_index()  #GRUPOWANIE GŁÓWNEGO DF ABY ZLICZYĆ KAŻDEGO PRACOWNIKA NA KAŻDYM ZLECENIU
         count_worker_summary_time = count_worker_summary_time.rename(columns={"Czas na zleceniu" : "Suma pracownika"}) #ZMIANA NAZW KOLUMN NA DOKLADNIEJSZE
         count_worker_summary_time = pd.merge(sorted_df, count_worker_summary_time[['Suma pracownika', 'id', 'Zlecenie']], on=['id','Zlecenie'], how='left') #DO POSORTOWANEGO DF Z LICZBA GODZIN W DANEJ DACIE DOŁĄCZA SUMĘ GODZIN DLA DANEJ OSOBY
         count_worker_summary_time = count_worker_summary_time.drop(columns=['id'])  #KOLUMNA ID NIE BEDZIE JUZ POTRZEBNA
         count_worker_summary_time = count_worker_summary_time[['Zlecenie', 'Nazwisko', 'Imie', 'DataCzas', 'Czas na zleceniu', 'Suma pracownika']]  #REORGANIZACJA KOLUMN KTORE MAJA BYC WYSWIETLANE W DANEJ KOLEJNOSCI
-        suma_dnia = suma_dnia.rename(columns={"Czas na zleceniu" : "Suma dnia"}) #ZMIANA NAZW KOLUMN NA DOKŁADNIEJSZE + OMIJA DZIEKI TEMU DUBLOWANIE KOLUMN W PRZYSZŁYCH MERGE'ACH
-        count_worker_summary_time = pd.merge(count_worker_summary_time, suma_dnia, on=['DataCzas'], how='left') #DO GŁÓWNEJ ROZPISKI GODZIN KAŻDEGO PRACOWNIKA DORZUCA SUME GODZIN NA DANY DZIEŃ PO KEY=DATACZAS
-        count_worker_summary_time = pd.merge(count_worker_summary_time, suma_zlecenia, on=['Zlecenie'], how='left') #DO GŁÓWNEGO DF DORZUCA SUME GODZIN NA CAŁYM ZLECENIU PO KEY=ZLECENIE
+        day_summary = day_summary.rename(columns={"Czas na zleceniu" : "Suma dnia"}) #ZMIANA NAZW KOLUMN NA DOKŁADNIEJSZE + OMIJA DZIEKI TEMU DUBLOWANIE KOLUMN W PRZYSZŁYCH MERGE'ACH
+        count_worker_summary_time = pd.merge(count_worker_summary_time, day_summary, on=['DataCzas'], how='left') #DO GŁÓWNEJ ROZPISKI GODZIN KAŻDEGO PRACOWNIKA DORZUCA SUME GODZIN NA DANY DZIEŃ PO KEY=DATACZAS
+        count_worker_summary_time = pd.merge(count_worker_summary_time, job_sum_time, on=['Zlecenie'], how='left') #DO GŁÓWNEGO DF DORZUCA SUME GODZIN NA CAŁYM ZLECENIU PO KEY=ZLECENIE
         count_worker_summary_time = count_worker_summary_time.sort_values(['DataCzas']) #SORTOWANIE WSTĘPNE KOLUMN, ABY BYŁY POSORTOWANE DATĄ NARASTAJĄCO
         count_worker_summary_time[['Czas na zleceniu', 'Suma zlecenia', 'Suma dnia', 'Suma pracownika']] = count_worker_summary_time[['Czas na zleceniu', 'Suma zlecenia', 'Suma dnia', 'Suma pracownika']].astype(float)
         count_worker_summary_time[['DataCzas']] = count_worker_summary_time[['DataCzas']].astype(str)
